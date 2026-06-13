@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTS语音评测系统</title>
+    <link rel="stylesheet" href="static/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <i class="fas fa-microphone-alt"></i>
+                TTS语音评测系统
+            </div>
+            <div class="navbar-menu">
+                <a href="#home" class="nav-link active" data-tab="home">
+                    <i class="fas fa-home"></i> 首页
+                </a>
+                <a href="#evaluation" class="nav-link" data-tab="evaluation">
+                    <i class="fas fa-play"></i> 开始评测
+                </a>
+                <a href="#results" class="nav-link" data-tab="results">
+                    <i class="fas fa-chart-bar"></i> 评测结果
+                </a>
+                <a href="#history" class="nav-link" data-tab="history">
+                    <i class="fas fa-history"></i> 历史记录
+                </a>
+            </div>
+        </nav>
+
+        <!-- 主内容区域 -->
+        <main class="main-content">
+            <!-- 首页 -->
+            <section id="home-tab" class="tab-content active">
+                <div class="welcome-section">
+                    <h1>欢迎使用TTS语音评测系统</h1>
+                    <p class="subtitle">基于Paraformer的高精度语音识别评测平台</p>
+                    
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <i class="fas fa-upload"></i>
+                            <h3>文件上传</h3>
+                            <p>支持批量上传音频和文本文件</p>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-brain"></i>
+                            <h3>智能识别</h3>
+                            <p>基于Paraformer的高精度语音识别</p>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-chart-line"></i>
+                            <h3>详细分析</h3>
+                            <p>提供CER、WER等多维度评测指标</p>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-eye"></i>
+                            <h3>可视化展示</h3>
+                            <p>直观的图表和差异对比显示</p>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <button class="btn btn-primary" onclick="switchTab('evaluation')">
+                            <i class="fas fa-rocket"></i> 开始评测
+                        </button>
+                        <button class="btn btn-secondary" onclick="switchTab('results')">
+                            <i class="fas fa-chart-bar"></i> 查看结果
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 系统状态 -->
+                <div class="system-status">
+                    <h3>系统状态</h3>
+                    <div id="system-info" class="status-grid">
+                        <div class="status-item">
+                            <span class="status-label">ASR引擎:</span>
+                            <span class="status-value" id="asr-status">检查中...</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">活跃任务:</span>
+                            <span class="status-value" id="active-tasks">0</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">总会话数:</span>
+                            <span class="status-value" id="total-sessions">0</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 评测页面 -->
+            <section id="evaluation-tab" class="tab-content">
+                <div class="evaluation-section">
+                    <h2>开始新的评测任务</h2>
+                    
+                    <!-- 评测方式选择 -->
+                    <div class="evaluation-method">
+                        <div class="method-tabs">
+                            <button class="method-tab active" data-method="upload">
+                                <i class="fas fa-upload"></i> 上传文件
+                            </button>
+                            <button class="method-tab" data-method="local">
+                                <i class="fas fa-folder"></i> 本地目录
+                            </button>
+                        </div>
+                        
+                        <!-- 文件上传 -->
+                        <div id="upload-method" class="method-content active">
+                            <div class="upload-area" id="upload-area">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <div class="upload-text">
+                                    <h3>拖拽文件到此处或点击选择</h3>
+                                    <p>支持 .wav, .pcm, .mp3, .flac 音频文件和 .txt 文本文件</p>
+                                </div>
+                                <input type="file" id="file-input" multiple accept=".wav,.pcm,.mp3,.flac,.txt" style="display: none;">
+                            </div>
+                            
+                            <div id="file-list" class="file-list" style="display: none;">
+                                <h4>已选择的文件:</h4>
+                                <div id="selected-files"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- 本地目录 -->
+                        <div id="local-method" class="method-content">
+                            <div class="form-group">
+                                <label for="directory-path">本地目录路径:</label>
+                                <input type="text" id="directory-path" placeholder="请输入包含音频和文本文件的目录路径，例如: ./examples 或 D:\datasets\audio_files">
+                                <small class="form-hint">
+                                    <i class="fas fa-info-circle"></i>
+                                    请输入完整的目录路径，确保目录中包含音频文件和对应的文本文件
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- 任务配置 -->
+                        <div class="task-config">
+                            <div class="form-group">
+                                <label for="task-name">任务名称 (可选):</label>
+                                <input type="text" id="task-name" placeholder="自动生成">
+                            </div>
+                        </div>
+                        
+                        <!-- 开始按钮 -->
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" id="start-evaluation-btn" onclick="startEvaluation()">
+                                <i class="fas fa-play"></i> 开始评测
+                            </button>
+                            <button class="btn btn-secondary" onclick="resetForm()">
+                                <i class="fas fa-redo"></i> 重置
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 进度显示 -->
+                <div id="progress-section" class="progress-section" style="display: none;">
+                    <h3>评测进度</h3>
+                    <div class="progress-info">
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="progress-bar">
+                                <div class="progress-fill" id="progress-fill"></div>
+                                <span class="progress-text" id="progress-text">0%</span>
+                            </div>
+                        </div>
+                        <div class="progress-details">
+                            <div class="progress-detail">
+                                <span class="detail-label">当前阶段:</span>
+                                <span class="detail-value" id="current-stage">准备中...</span>
+                            </div>
+                            <div class="progress-detail">
+                                <span class="detail-label">已处理:</span>
+                                <span class="detail-value" id="processed-files">0 / 0</span>
+                            </div>
+                            <div class="progress-detail">
+                                <span class="detail-label">预计剩余:</span>
+                                <span class="detail-value" id="estimated-time">计算中...</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-actions">
+                        <button class="btn btn-danger" id="cancel-task-btn" onclick="cancelTask()">
+                            <i class="fas fa-stop"></i> 取消任务
+                        </button>
+                        <button class="btn btn-success" id="view-results-btn" onclick="viewResults()" style="display: none;">
+                            <i class="fas fa-eye"></i> 查看结果
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 结果页面 -->
+            <section id="results-tab" class="tab-content">
+                <div class="results-section">
+                    <h2>评测结果</h2>
+                    
+                    <!-- 结果加载 -->
+                    <div class="result-controls">
+                        <div class="form-group">
+                            <label for="session-select">选择会话:</label>
+                            <select id="session-select" onchange="loadSessionResults()">
+                                <option value="">请选择会话...</option>
+                            </select>
+                            <button class="btn btn-secondary" onclick="refreshSessions()">
+                                <i class="fas fa-refresh"></i> 刷新
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 结果显示区域 -->
+                    <div id="results-display" style="display: none;">
+                        <!-- 汇总统计 -->
+                        <div class="summary-stats">
+                            <h3>汇总统计</h3>
+                            <div class="stats-grid" id="stats-grid">
+                                <!-- 统计卡片将通过JS动态生成 -->
+                            </div>
+                        </div>
+                        
+                        <!-- 图表区域 -->
+                        <div class="charts-section">
+                            <h3>数据可视化</h3>
+                            <div class="charts-grid">
+                                <div class="chart-container">
+                                    <canvas id="cer-chart"></canvas>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="wer-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 详细结果表格 -->
+                        <div class="detailed-results">
+                            <h3>详细结果</h3>
+                            <div class="table-controls">
+                                <input type="text" id="search-input" placeholder="搜索文件名或文本内容..." onkeyup="filterResults()">
+                                <select id="filter-select" onchange="filterResults()">
+                                    <option value="">全部</option>
+                                    <option value="success">成功</option>
+                                    <option value="failed">失败</option>
+                                    <option value="exact">完全匹配</option>
+                                </select>
+                                <button class="btn btn-secondary" onclick="exportResults()">
+                                    <i class="fas fa-download"></i> 导出
+                                </button>
+                            </div>
+                            
+                            <div class="table-container">
+                                <table id="results-table" class="results-table">
+                                    <thead>
+                                        <tr>
+                                            <th>序号</th>
+                                            <th>音频文件</th>
+                                            <th>原始文本</th>
+                                            <th>识别文本</th>
+                                            <th>CER</th>
+                                            <th>WER</th>
+                                            <th>相似度</th>
+                                            <th>状态</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="results-tbody">
+                                        <!-- 结果行将通过JS动态生成 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 空状态 -->
+                    <div id="empty-results" class="empty-state">
+                        <i class="fas fa-chart-bar"></i>
+                        <h3>暂无评测结果</h3>
+                        <p>请先进行评测任务或选择已有的会话</p>
+                        <button class="btn btn-primary btn-sm" onclick="switchTab('evaluation')">
+                            <i class="fas fa-play"></i> 开始评测
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 历史记录页面 -->
+            <section id="history-tab" class="tab-content">
+                <div class="history-section">
+                    <h2>历史记录</h2>
+                    
+                    <div class="history-controls">
+                        <button class="btn btn-secondary" onclick="refreshHistory()">
+                            <i class="fas fa-refresh"></i> 刷新
+                        </button>
+                        <button class="btn btn-danger" onclick="clearHistory()">
+                            <i class="fas fa-trash"></i> 清空历史
+                        </button>
+                    </div>
+                    
+                    <div class="history-list" id="history-list">
+                        <!-- 历史记录项将通过JS动态生成 -->
+                    </div>
+                    
+                    <!-- 空状态 -->
+                    <div id="empty-history" class="empty-state">
+                        <i class="fas fa-history"></i>
+                        <h3>暂无历史记录</h3>
+                        <p>您还没有进行过任何评测任务</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 详细差异对比模态框 -->
+    <div id="diff-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>文本差异对比</h3>
+                <button class="close-btn" onclick="closeDiffModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- 音频播放区域 -->
+                <div class="audio-section">
+                    <h4>音频播放</h4>
+                    <div class="audio-player">
+                        <audio id="audio-player" controls style="width: 100%;">
+                            您的浏览器不支持音频播放。
+                        </audio>
+                        <div class="audio-info">
+                            <span id="audio-filename" class="audio-filename"></span>
+                            <span id="audio-duration" class="audio-duration"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="diff-comparison">
+                    <div class="diff-section">
+                        <h4>原始文本</h4>
+                        <div id="original-text" class="text-content"></div>
+                    </div>
+                    <div class="diff-section">
+                        <h4>识别文本</h4>
+                        <div id="recognized-text" class="text-content"></div>
+                    </div>
+                </div>
+                <div class="diff-details">
+                    <h4>差异详情</h4>
+                    <div id="diff-details-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- 加载中指示器 -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>处理中...</p>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="static/lib/chart.min.js"></script>
+    <script src="static/script.js"></script>
+</body>
+</html>

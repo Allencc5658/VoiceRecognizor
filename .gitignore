@@ -1,0 +1,55 @@
+# Python/runtime artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+
+# Models and large generated assets
+models/
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.safetensors
+*.bin
+
+# Runtime data
+data/
+results/
+temp/
+logs/
+uploads/
+*.log
+
+# Generated archives/backups
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
+
+# OS/editor metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
